@@ -87,4 +87,4 @@ Normal detection accuracy: ~88%
 
 👩‍💻 Author
 Sree Vaishnavi Nandikanti
-Data Science & Machine Learning Enthusiast.  give me this how to paste vs code because I was doing it in git all this time  
+Data Science & Machine Learning Enthusiast.  
