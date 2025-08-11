@@ -47,7 +47,7 @@ y_pred = (y_pred_prob > 0.7).astype(int)
 roc_auc = roc_auc_score(y_test, y_pred_prob)
 print("ROC AUC:", roc_auc)
 print("\nClassification Report:\n", classification_report(y_test, y_pred))
-print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix, y_pred)
 
 # 5) Save model
 joblib.dump(model, "../models/risk_model.joblib")

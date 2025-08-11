@@ -17,7 +17,8 @@ if not os.path.exists(csv_file):
         writer.writerow(["patient_id", "timestamp", "hr", "bp_sys", "spo2"])
 
 # Example patient IDs
-patients = [101, 102, 103]
+patients = list(range(101, 111))  # 101 to 110
+
 
 # Start simulation
 print("Starting real-time patient vitals simulation...")
