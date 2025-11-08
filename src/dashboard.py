@@ -1,65 +1,60 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
-import time
 import os
 
-# Define the model path relative to project root
-MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'risk_model.joblib')
 
-try:
-    model = joblib.load(MODEL_PATH)
-    print("✅ Model loaded successfully!")
-except Exception as e:
-    print(f"❌ Failed to load model: {e}")
-    model = None
+# Load the trained model safely
 
-# Load trained model
-import os
-model = joblib.load(os.path.join("models", "risk_model.joblib"))
+model_path = os.path.join("models", "risk_model.joblib")
+
+if not os.path.exists(model_path):
+    st.error("❌ Model file not found. Please ensure 'risk_model.joblib' is in the 'models' folder.")
+    st.stop()
+
+model = joblib.load(model_path)
 
 
-st.set_page_config(page_title="Patient Risk Monitor", layout="wide")
-st.title("🏥 Real-Time Patient Risk Monitoring")
+# App Title and Description
 
-DATA_PATH = "data/live_stream.csv"
+st.title("🩺 Real-Time Patient Health Risk Prediction")
+st.markdown("""
+This application allows healthcare professionals to **manually input patient vitals**  
+and instantly predict whether the patient is at **High Risk** or **Normal** using a trained ML model.
+""")
 
-# Live update loop
-placeholder = st.empty()
+# Manual Input Section
 
-while True:
-    if os.path.exists(DATA_PATH):
-        # Load latest vitals
-        df = pd.read_csv(DATA_PATH)
+st.markdown("### 📋 Enter Patient Vitals")
 
-        if not df.empty:
-            # Keep only latest reading per patient
-            latest = df.groupby("patient_id").tail(1)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    hr = st.number_input("Heart Rate (HR)", min_value=40, max_value=180, value=72, step=1)
+
+with col2:
+    bp_sys = st.number_input("Systolic Blood Pressure (BP_SYS)", min_value=80, max_value=200, value=120, step=1)
+
+with col3:
+    spo2 = st.number_input("Oxygen Saturation (SpO₂)", min_value=70, max_value=100, value=96, step=1)
 
 
-            # Prepare features for prediction
-            features = latest[["hr", "bp_sys", "spo2"]]
-            risk_probs = model.predict_proba(features)[:, 1]
-            latest["risk_score"] = risk_probs
-            latest["risk_level"] = (latest["risk_score"] > 0.5).astype(int)
+# Prediction Section
 
-            # Display in dashboard
-            with placeholder.container():
-                col1, col2 = st.columns([2, 1])
+if st.button("🔍 Predict Risk"):
+    input_data = pd.DataFrame([[hr, bp_sys, spo2]], columns=["hr", "bp_sys", "spo2"])
+    pred_prob = model.predict_proba(input_data)[0][1]
+    prediction = "🚨 High Risk" if pred_prob > 0.7 else "✅ Normal"
 
-                with col1:
-                    st.subheader("📊 Live Patient Data")
-                    st.dataframe(latest[["patient_id", "hr", "bp_sys", "spo2", "risk_score", "risk_level"]])
-
-                with col2:
-                    st.subheader("🚨 Alerts")
-                    high_risk = latest[latest["risk_level"] == 1]
-                    if high_risk.empty:
-                        st.success("✅ No high-risk patients right now")
-                    else:
-                        for _, row in high_risk.iterrows():
-                            st.error(f"⚠️ Patient {row['patient_id']} is HIGH RISK (score: {row['risk_score']:.2f})")
+    # --- Display Result ---
+    st.subheader("Prediction Result:")
+    if prediction == "🚨 High Risk":
+        st.error(f"🚨 Patient Status: **HIGH RISK**\n\nProbability: **{pred_prob:.2f}**")
     else:
-        st.warning("Waiting for live data...")
+        st.success(f"✅ Patient Status: **NORMAL**\n\nProbability: **{pred_prob:.2f}**")
 
-    time.sleep(5)  # refresh every 5 seconds
+# Footer
+
+st.markdown("---")
+st.info("💡 Tip: You can also keep the simulator running in parallel for real-time updates.")
