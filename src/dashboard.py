@@ -15,7 +15,9 @@ except Exception as e:
     model = None
 
 # Load trained model
-model = joblib.load("../models/risk_model.joblib")
+import os
+model = joblib.load(os.path.join("models", "risk_model.joblib"))
+
 
 st.set_page_config(page_title="Patient Risk Monitor", layout="wide")
 st.title("🏥 Real-Time Patient Risk Monitoring")
